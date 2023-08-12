@@ -11,7 +11,7 @@ Anyone doing code review will most likely tell you to up your `grep` game. Or ma
 
 Grepping a code base in emacs is actually a rather pleasant experience. Let me show you.
 
-![](/ox-hugo/20230812-213538_screenshot.png)
+![](/images/20230812-213538_screenshot.png)
 
 Yeah sure, its not the best example, but it hopefully shows that a new interactive buffer opens with the results.
 
@@ -27,7 +27,7 @@ The code for this is
 
 This is where I change the `grep-command` to use [rg](https://github.com/BurntSushi/ripgrep) with a few options to give context around the matched word. I then map a keyboard shortcut to `C-c r`. I've also installed the emacs `rg` plugin, but I don't find myself using it much. However, I have found myself using `counsel-rg` for quick searches.
 
-![](/ox-hugo/20230812-214644_screenshot.png)
+![](/images/20230812-214644_screenshot.png)
 
 It does not open up in a new buffer, it shows the results in the mini buffer, which means that I cant go back to the results. So I find myself using this for smaller searches.
 
