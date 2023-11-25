@@ -1,0 +1,39 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: emacs
+#+DATE: 2023-11-25
+#+TITLE: Installing a Specific Version With apt
+
+I went to upgrade my home Gitlab server with =sudo apt update && sudo apt upgrade -y= and was met with the following error.
+
+#+begin_example
+  Preparing to unpack .../gitlab-ce_16.6.0-ce.0_armhf.deb ...
+  gitlab preinstall: It seems you are upgrading from 16.2 to 16.6.
+  gitlab preinstall: It is required to upgrade to the latest 16.3.x version first before proceeding.
+  gitlab preinstall: Please follow the upgrade documentation at https://docs.gitlab.com/ee/update/index.html#upgrade-paths
+  dpkg: error processing archive /var/cache/apt/archives/gitlab-ce_16.6.0-ce.0_armhf.deb (--unpack):
+   new gitlab-ce package pre-installation script subprocess returned error exit status 1
+  Errors were encountered while processing:
+   /var/cache/apt/archives/gitlab-ce_16.6.0-ce.0_armhf.deb
+  E: Sub-process /usr/bin/dpkg returned an error code (1)
+#+end_example
+
+This could be me being a poor home sysadmin, because I'm a few versions out, and the most recent package from the repo's (=16.6=) requires me to be on a =16.3= release.
+
+I'd be lying if I'd say that I've never came across this before on this server, but last time it was a mad dash to upgrade it and I could not remember what it was I did to fix it. So this time I'm going to document it.
+
+* apt install =$old_release=
+I remember coming across this in the [[https://www.debian.org/doc/manuals/debian-handbook/][debian administrators handbook]], but I never really needed to use it. Basically you can install a specific version of the application to install by adding ~=$VERSION~ to the end of the package name. To quote from the [[https://manpages.debian.org/bookworm/apt/apt.8.en.html][apt man page]].
+
+#+begin_quote
+A specific version of a package can be selected for installation by following the package name with an equals (=) and the version of the package to select. Alternatively the version from a specific release can be selected by following the package name with a forward slash (/) and codename (bookworm, trixie, sid ...) or suite name (stable, testing, unstable).
+#+end_quote
+
+So to fix my problem I had to run the following.
+
+#+begin_src shell :results output
+  sudo apt install gitlab-ce=16.3.0-ce.0 && \
+      sudo apt update && \
+      sudo apt upgrade -y
+#+end_src
+
+This would first upgrade to a =16.3= release before then upgrading to the latest version.
