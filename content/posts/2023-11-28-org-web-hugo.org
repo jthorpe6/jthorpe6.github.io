@@ -1,0 +1,44 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: docker, org-mode
+#+DATE: 2023-11-28
+#+TITLE: org-web-hugo
+
+I love writing in =org-mode= It's much better than traditional =markdown=, however most markdown editors have the ability to render your text so you can preview it before. I argue that a good theme in Emacs allows for this, but none the less, I started looking into a way to render a folder with a bunch of =org-mode= files in it.
+
+* Hugo
+This blog's content is written in =org-mode= and then using [[https://ox-hugo.scripter.co][ox-hugo]] converted to =markdown=. I then noticed that it was rendering the =.org= files with [[https://gohugo.io][Hugo]]. This got me thinking that I could just have a simple =docker= container serving the directory of =org-mode= files, and that's exactly what I did.
+
+* Dockerising Hugo
+It was actually rather easy to dockerise Hugo, the only /tricky/ part was setting the address to serve on, as by default its =127.0.0.1= but I had to change that to =0.0.0.0=. The entire =Dockerfile= is 13 lines.
+
+#+begin_src dockerfile
+  FROM alpine:latest
+  RUN apk update && \
+    apk add --no-cache \
+    hugo \
+    git
+  RUN hugo new site org-web-hugo
+  WORKDIR /org-web-hugo/
+  RUN git init && \
+    git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke && \
+    echo "theme = 'ananke'" >> hugo.toml
+  EXPOSE 1313
+  ENTRYPOINT ["hugo", "serve", "--bind", "0.0.0.0"]
+#+end_src
+
+* Result
+Running the container is easy enough too and works really well.
+
+#+begin_src shell :results output
+  docker run \
+	   --rm \
+	   -d \
+	   -p 1313:1313 \
+	   -v /path/to/folder/of/.org/files:/org-web-hugo/content/posts \
+	   org-web-hugo
+#+end_src
+
+[[/images/20231128-org-web-hugo.png]]
+
+* Repo
+I made a repo for this small project [[https://github.com/jthorpe6/org-web-hugo][here]].
