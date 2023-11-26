@@ -128,4 +128,4 @@ When I first got into =emacs= I did dabble with the =eshell= but back then I was
 I'm spending more and more time with =python= at work, so It was about time I learnt what [[https://github.com/pyenv/pyenv][pyenv]] was all about, and I love it. No more 9th level of python dependency hell, and I for sure wanted this in =emacs=, luckily there's a [[https://github.com/pythonic-emacs/pyenv-mode][pyenv =emacs= package]]. So I enabled that, and am not looking back.
 
 * Repo
-I'm certain that I've forgotten to mention something. So I'm going to link my configuration [[https://github.com/jthorpe6/init.el][here]] as this post is already getting on the big side.
+I'm certain that I've forgotten to mention something. So I'm going to link my configuration [[https://github.com/jthorpe6/.emacs.d.git][here]] as this post is already getting on the big side.

@@ -25,7 +25,7 @@ Funny enough I never really bothered with a modeline, or if I did, I'd just slig
 
 ### Fonts {#fonts}
 
-Any good theme is not complete without a good font, and after watching [Emacs From Scratch](https://www.youtube.com/watch?v=74zOY-vgkyw&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ) series, I wanted to try out setting a different from for `code` and writing. Emacs calls these `fixed-pitch` and `variable-pitch` fonts. However, due to the way I run `emacs` I had to set these in a `org-mode` hook like so.
+Any good theme is not complete without a good font, and after watching the [Emacs From Scratch](https://www.youtube.com/watch?v=74zOY-vgkyw&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ) series, I wanted to try out setting a different font for `code` and writing. Emacs calls these `fixed-pitch` and `variable-pitch` fonts. However, due to the way I run `emacs` I had to set these in a `org-mode` hook like so.
 
 ```emacs-lisp
 (defun jt/org-mode-fonts()
@@ -110,7 +110,7 @@ As an Apple fanboy, I'm very much in the apple "walled garden", yet I'd prefer t
 
 ## Nicer code editing {#nicer-code-editing}
 
-I really wanted to try out `tree-sitter` but I'm still too scared to give that a go, the same with `eglot`. So I decided to make my current code environment better. So i installed [color-identifiers-mode](https://github.com/ankurdave/color-identifiers-mode) to highlights identifiers, and I also installed [highlight-indent-guides](https://github.com/DarthFennec/highlight-indent-guides) to see where I am in indention.
+I really wanted to try out `tree-sitter` but I'm still too scared to give that a go, the same with `eglot`. So I decided to make my current code environment better. So i installed [color-identifiers-mode](https://github.com/ankurdave/color-identifiers-mode) to highlight identifiers, and I also installed [highlight-indent-guides](https://github.com/DarthFennec/highlight-indent-guides) to see where I am in indention.
 
 
 ## Nicer git {#nicer-git}
@@ -142,6 +142,21 @@ The `emacs` tutorial says to try and avoid using the arrow keys, however the def
 I'm not too sure if it will stick, but now I at least have the option.
 
 
+### Make file executable after saving {#make-file-executable-after-saving}
+
+I actually stumbled across this setting whilst trying to research a fix for a different `emacs` problem. What this hook does is to check if the buffer file has a shebang (e.g. `#!/usr/bin/env python`) in it and then it modifies its permissions, if necessary.
+
+```emacs-lisp
+(add-hook 'after-save-hook
+        'executable-make-buffer-file-executable-if-script-p)
+```
+
+
+### eshell {#eshell}
+
+When I first got into `emacs` I did dabble with the `eshell` but back then I was still learning `bash` and how to use the shell. Nowadays I know about the `async-shell-command` with `M-&` and I can get by with that mostly. So I decided to replace my `vterm` keybindings with `eshell`, and so far so good, I love the fact I can invoke `dired` right from the shell. The `tramp` support too is pretty nice. The [load-bash-alias](https://github.com/daviderestivo/load-bash-alias) package is also a must have, as I set a lot of aliases in my environment and its nice to carry those across with me into the `eshell`.
+
+
 ### pyenv {#pyenv}
 
 I'm spending more and more time with `python` at work, so It was about time I learnt what [pyenv](https://github.com/pyenv/pyenv) was all about, and I love it. No more 9th level of python dependency hell, and I for sure wanted this in `emacs`, luckily there's a [pyenv `emacs` package](https://github.com/pythonic-emacs/pyenv-mode). So I enabled that, and am not looking back.
@@ -149,4 +164,4 @@ I'm spending more and more time with `python` at work, so It was about time I le
 
 ## Repo {#repo}
 
-I'm certain that I've forgotten to mention something. So I'm going to link my configuration [here](https://github.com/jthorpe6/init.el) as this post is already getting on the big side.
+I'm certain that I've forgotten to mention something. So I'm going to link my configuration [here](https://github.com/jthorpe6/.emacs.d.git) as this post is already getting on the big side.
