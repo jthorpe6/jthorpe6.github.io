@@ -1,0 +1,107 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: ios, pac
+#+DATE: 2023-11-26
+#+TITLE: Notes About PAC
+
+My background is in penetration testing and system/network administration. About a year ago I decided that penetration testing was not what it once was, and moved into vulnerability research, specifically researching all things Apple. Researching Apple devices I quickly came across the term =PAC=, and struggled to get my head around it. So because it seems like black magic voodoo I'm going to share and write up some notes on it.
+
+=PAC= or Pointer Authenticated Code has been documented at length by the community, but first as its all the rage right now, lets ask ChatGPT what it is.
+
+I'll use [[https://github.com/xenodium/chatgpt-shell][chatgpt-shell]].
+
+#+begin_src chatgpt-shell
+what is Pointer Authenticated Code (PAC)
+#+end_src
+
+#+RESULTS:
+#+begin_quote
+Pointer Authentication Code (PAC) is a security feature found in modern processors, such as those based on the ARM architecture, specifically ARMv8.3 and later. It is designed to mitigate exploits based on the corruption of pointers, especially return addresses and function pointers, which are common targets for attackers attempting control-flow hijacking attacks.
+
+The concept of PAC is based on cryptographic message authentication codes (MAC). A PAC-enabled processor uses a cryptographic signature to authenticate pointers before they are used. Each pointer gets signed with a secret key, creating a PAC which is stored alongside the pointer. Before the pointer is dereferenced, the processor checks the signature (PAC) to verify that the pointer has not been altered (either accidentally or maliciously) since it was last signed. This checking process is known as pointer authentication.
+
+If the pointer verification succeeds, execution proceeds as normal. If it fails (which would indicate that the pointer has been tampered with), then the system can take appropriate action, such as terminating the process or raising an exception. This greatly enhances the security of the system by preventing attackers from easily redirecting the control flow of the application without knowing the secret keys used to generate and verify the PACs.
+
+Pointer authentication is generally used in addition to other security features and mitigations, such as stack canaries, Address Space Layout Randomization (ASLR), and Control Flow Integrity (CFI), to form more comprehensive security strategies against various types of attacks.
+#+end_quote
+
+Before we move on, lets get a list of resources that other people have published about =PAC=
+
+- [[https://googleprojectzero.blogspot.com/2019/02/examining-pointer-authentication-on.html][Examining Pointer Authentication on the iPhone XS]] (ProjectZero)
+- [[https://www.usenix.org/system/files/usenixsecurity23-cai-zechao.pdf][Demystifying Pointer Authentication on Apple M1]] (Usenix)
+- [[https://bazad.github.io/presentations/BlackHat-USA-2020-iOS_Kernel_PAC_One_Year_Later.pdf][iOS Kernel PAC, One Year Later]] (Brandon Azad, Google Project Zero)
+- [[https://gist.github.com/networkextension/24bac6ffb8cb875e1d8b4f8672cdba3b][ARMv8.3 Pointer Authentication in XNU]] (GitHub Gist)
+
+Now that we have a /gist/ of what it is and what it does, lets talk about it.
+
+=PAC= is an ARM security feature that its main goal is to stop memory corruption of pointers, it does this by *signing* the pointer. Apple being Apple do it slightly differently from the specification, but the general concept can be seen here.
+
+[[/images/20231126-pacalg.png]]
+#+CAPTION: Source: http://seanchense.github.io/2019/10/01/pointer-authentication/
+
+* Seeing is believing
+we can actually see the instructions for ourselves. First I'll download a =kernelcache=.
+
+#+begin_src shell :results none
+ipsw download ipsw --kernel --version 16.0 --device iPhone14,7
+#+end_src
+
+Once downloaded lets chuck it into [[https://ghidra-sre.org][Ghidra]] and let it do its auto analysis. Once the analysis is done I'll look at any random function.
+
+[[/images/20231126-pac-ghidra.png]]
+
+The two instructions related to =PAC= in that screenshot are the =pacibsp= and =retab= instructions. Lets again ask our friend ChatGPT what those instructions do.
+
+#+begin_src chatgpt-shell
+what does the ARM pacibsp and retab instructions do?
+#+end_src
+
+#+RESULTS:
+#+begin_quote
+There is some confusion in your question because "pacibsp" and "retab" do not appear to be standard ARM instructions. ARM architecture includes a wide range of instructions with different purposes, from data processing to memory manipulation and control flow, but the specific instructions you've mentioned do not align with the known ARM instruction set.
+
+However, based on the context, it’s possible you’re referring to the ARM Pointer Authentication Code (PAC) and Return Address Stack (RAS) features, which are part of the ARMv8.3-A architecture and later.
+
+1. **Pointer Authentication Codes (PAC):** ARMv8.3 introduced pointer authentication instructions that can help mitigate return-oriented programming (ROP) and jump-oriented programming (JOP) attacks by cryptographically signing and authenticating pointers. The instructions include:
+
+   - `PACIA`, `PACIB`, `PACDA`, `PACDB`: Add a PAC to a pointer.
+   - `AUTIA`, `AUTIB`, `AUTDA`, `AUTDB`: Authenticate a pointer with a PAC.
+   - `XPACI`, `XPACD`: Strip a PAC from a pointer.
+
+   Here, "I" stands for instruction, "D" for data, "A" and "B" refer to different keys used for signing. These keys are context-specific and help prevent the misuse of pointers even if a key is compromised in a different context.
+
+2. **Return Address Stack (RAS):** The RAS is a feature in modern processors, including ARM, that essentially predicts return addresses to speed up subroutine returns. The instructions related to this feature are:
+
+   - `RET`: Return from subroutine, which uses the link register (LR)
+   - `BL`, `BLX`: Branch with link, where the return address is stored in the link register
+
+   However, there is no standard "retab" instruction in ARM. This might be a misinterpretation or a typo of the `RET` instruction, which is used to return from a function, using the link register `LR`, which typically holds the return address.
+#+end_quote
+
+Ok, so ChatGPT kinda got it, lets start off with the first one *PACIBSP*.
+ * This instruction takes the context of the =SP= and signs it with the =IB= key.
+The second instruction *RETAB*.
+ * Performs a combined authenticate-and-return operation, where in this case will verify =LR= using the B-instruction key and then return.
+
+It should important to note here that the attacker does not know the key, and the key changes each time the device reboots. 
+
+** Pointers
+Its possible to see the pointers that have been =PAC='ed when kernel debugging, and using the =lldb= helper scrips from the =KDK= you can see what they were before.
+
+#+begin_example
+>>> print(xnu.kern.globals.realhost.special[1])
+(__ptrauth(2,1,39821,"sign-and-strip") ipc_port_t) [1] = 0x239afe200066db70 (actual=0xfffffe200066db70)
+#+end_example
+
+** In the source
+The XNU kernel is open source, and there is a [[https://github.com/apple-oss-distributions/xnu/blob/main/EXTERNAL_HEADERS/ptrauth.h][header file]] which has some information on =PAC=. For example:
+
+#+begin_src c
+    /* The key used to sign return addresses on the stack.
+       The extra data is based on the storage address of the return address.
+       On ARM64, that is always the storage address of the return address plus 8
+       (or, in other words, the value of the stack pointer on function entry) */
+    ptrauth_key_return_address = ptrauth_key_process_dependent_code,
+#+end_src
+
+* Big Caveat
+I'm still learning, and am human. So I've probably made a mistake in this post. If I have please do let me know, and share the knowledge. I just wanted to put some notes together so I know where my current knowledge of =PAC= is.
