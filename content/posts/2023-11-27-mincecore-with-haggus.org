@@ -1,0 +1,12 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: music
+#+DATE: <2023-11-27 Sun>
+#+TITLE: Mincecore with Haggus
+
+I first heard of Haggus in 2022 when a friend showed them to me and from there I've been hooked on mincecore ever since, specifically the project Haggus. Earlier this year I made it to Obscene Extreme 24, and Haggus played.
+
+My favourite album of theirs is Straight From The Slaughterhaus, that's not to say their other material is not good (because it is), I just really like this album.
+
+[[/images/20231127-haggus.png]]
+
+This album for me has made me include more mincecore bands into my music sessions, and if anything I'm starting to *prefer* mincecore, fastcore, and power violence over traditional death metal and grindcore.
