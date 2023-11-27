@@ -127,7 +127,7 @@ I decided to refactor my `init.el` so that the majority of my config is in the `
 
 ### compile {#compile}
 
-I'd often watch people in `emacs` and wonder "how on earth are they running that buffer in `emacs`". Turns out the `compile` command is not well, just used to compile the buffer. It can be used to run a command with a keybinding, namely the command to run the file your editing. So I set the to the `C-x C-r` command, and it will run the `compile` command. But what I did not understand was how to set that, because surely `bash ./foo.sh` is a different command to `python ./bar.py`. Turns out if you prefix that command with `C-u` it will prompt you for the command, and then when I press `C-x C-r` again it will take that.
+I'd often watch people in `emacs` and wonder "how on earth are they running that buffer in `emacs`". Turns out the `compile` command is not well, just used to compile the buffer. It can be used to run a command with a keybinding, namely the command to run the file your editing. So I set the to the `C-x C-x` command, and it will run the `compile` command. But what I did not understand was how to set that, because surely `bash ./foo.sh` is a different command to `python ./bar.py`. Turns out if you prefix that command with `C-u` it will prompt you for the command, and then when I press `C-x C-x` again it will take that.
 
 
 ### next-buffer previous-buffer {#next-buffer-previous-buffer}
