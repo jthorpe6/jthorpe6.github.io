@@ -1,7 +1,7 @@
 #+HUGO_BASE_DIR: ../../
 #+EXPORT_HUGO_CATEGORIES: elisp, denote, org-mode
 #+DATE: <2023-11-30 Thu>
-#+TITLE: Adding phrack to denote
+#+TITLE: Adding phrack to Denote
 
 [[https://protesilaos.com/emacs/denote][Denote]] is my new note taking system and I really wanted to add the [[http://www.phrack.org][phrack]] articles to denote so I can search and index them. At time of writing there are 70 articles, and you can download the archives for each one [[http://www.phrack.org/archives/][here]]. But I wanted to automate the whole process, and do it with Emacs lisp.
 
