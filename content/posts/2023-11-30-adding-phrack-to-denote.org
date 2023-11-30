@@ -1,0 +1,253 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: elisp, denote, org-mode
+#+DATE: <2023-11-30 Thu>
+#+TITLE: Adding phrack to denote
+
+[[https://protesilaos.com/emacs/denote][Denote]] is my new note taking system and I really wanted to add the [[http://www.phrack.org][phrack]] articles to denote so I can search and index them. At time of writing there are 70 articles, and you can download the archives for each one [[http://www.phrack.org/archives/][here]]. But I wanted to automate the whole process, and do it with Emacs lisp.
+
+* Downloading and extracting the articles
+This could be done with =wget= brace expansion and =tar= like so:
+
+#+begin_src shell :results none
+  wget http://www.phrack.org/archives/tgz/phrack{1..70}.tar.gz && for i in *.tar.gz; do tar -xxzvf $i -C $i ;done
+#+end_src
+
+However, seeing as my end goal is to put this all within denote, I used the following =lisp= snippet to download and extract each articles.
+
+#+begin_src emacs-lisp
+  (defun download-file (url destination)
+    "Download a file from URL and save it to DESTINATION."
+    (url-copy-file url destination t))
+
+  (defun create-directory-if-not-exists (directory)
+    "Create DIRECTORY if it doesn't exist."
+    (unless (file-exists-p directory)
+      (make-directory directory)))
+
+  (defun untar-file (file destination)
+    "Untar FILE into DESTINATION."
+    (shell-command (format "tar -xzvf %s -C %s" file destination)))
+
+  (dotimes (i 70)
+    (let* ((url (format "http://www.phrack.org/archives/tgz/phrack%d.tar.gz" (1+ i)))
+	   (filename (format "phrack%d.tar.gz" (1+ i)))
+	   (directory (format "phrack%d" (1+ i)))
+	   (filepath (concat directory "/" filename)))
+      (create-directory-if-not-exists directory)
+      (download-file url filepath)
+      (untar-file filepath directory)))
+#+end_src
+
+With them downloaded, I have a bit of a problem when it comes to indexing them. In that the filenames and folders do not use two digits for the version number, so I get things like this
+
+#+begin_example
+  phrack2
+  phrack20
+  |---1.txt
+  |---10.txt
+  |---11.txt
+  |---12.txt
+  |---2.txt
+  |---3.txt
+  |---4.txt
+  |---5.txt
+  |---6.txt
+  |---7.txt
+  |---8.txt
+  |---9.txt
+  |---phrack20.tar.gz
+  phrack21
+#+end_example
+
+* Fixing up the files and directories
+To fix the problem I just need to add a =0= in front of files and directories that start with =0-9=, I can do this with a simple regex of =^[0-9]+=. But I need to do this for both the files and the directories. That should be simple enough, lets tackle the directory names first.
+
+#+begin_src emacs-lisp :results none
+(defun rename-directories ()
+  "Rename directories from phrack1 to phrack01, phrack2 to phrack02, etc."
+  (dotimes (i 9)
+    (let* ((old-directory (format "phrack%d" (1+ i)))
+	   (new-directory (format "phrack%02d" (1+ i))))
+      (when (file-exists-p old-directory)
+	(rename-file old-directory new-directory)))))
+
+(rename-directories)
+#+end_src
+
+#+begin_example
+  phrack01
+  phrack02
+  phrack03
+  phrack04
+  phrack05
+  phrack06
+  phrack07
+  phrack08
+  phrack09
+  phrack10
+  phrack11
+  phrack12
+#+end_example
+
+Great, now to fix the files inside each directory the same way.
+
+#+begin_src emacs-lisp :results none
+  (defun fixup-files-in-directories ()
+    "Rename the files from 1.txt to 01.txt, etc in each dir."
+    (dotimes (i 70)
+      (let* ((directory (format "phrack%02d" (1+ i)))
+	     (files (directory-files directory nil "^[0-9]+\\.txt$")))
+	(dolist (file files)
+	  (let* ((old-file-path (concat directory "/" file))
+		 (base-name (file-name-base file))
+		 (new-file-path (concat directory "/" (format "%02d.txt" (string-to-number base-name)))))
+
+	    (rename-file old-file-path new-file-path))))))
+
+  (fixup-files-in-directories)
+
+#+end_src
+
+#+begin_example
+  phrack11
+  |---01.txt
+  |---02.txt
+  |---03.txt
+  |---04.txt
+  |---05.txt
+  |---06.txt
+  |---07.txt
+  |---08.txt
+  |---09.txt
+  |---10.txt
+  |---11.txt
+  |---12.txt
+  |---phrack11.tar.gz
+  phrack12
+  |---01.txt
+  |---02.txt
+  |---03.txt
+  |---04.txt
+  |---05.txt
+  |---06.txt
+  |---07.txt
+  |---08.txt
+  |---09.txt
+  |---10.txt
+  |---11.txt
+  |---phrack12.tar.gz
+#+end_example
+
+Nice! Now all that's left is to add each file to denote.
+
+* Adding to Denote
+I typically use =org-mode= files in denote, but denote does support =.txt= files, so all I need to do is add each file, with the appropriate tags. I want the tag to be =phrack$issue_number=.
+
+#+begin_src emacs-lisp
+  (setq denote-rename-no-confirm t)
+
+  (defun automate-denote-rename-directory (directory)
+    "Automate Denote file rename and tag addition for all files in DIRECTORY."
+    (let* ((files (directory-files directory nil "^[0-9]+\\.txt$"))
+	   (tag (file-name-nondirectory directory)))
+      (dolist (file files)
+	(let ((file-path (concat directory "/" file))
+	      (title (file-name-base file)))
+	  (with-current-buffer (find-file-noselect file-path)
+	    (denote-rename-file file title (list tag) nil)
+	    (save-buffer)
+	    (kill-buffer))))))
+
+  (defun rename-and-add-tags-to-all-files-in-denote ()
+    "Rename files and add tags in Denote for all specified directories."
+    (dotimes (i 70)
+      (let ((directory (format "phrack%02d" (1+ i))))
+	(when (file-exists-p directory)
+	  (automate-denote-rename-directory directory)))))
+
+  (rename-and-add-tags-to-all-files-in-denote)
+#+end_src
+
+And there we have it, I now have all of phrack in denote. Importantly, the =(setq denote-rename-no-confirm t)= line allows this to not prompt me for any inputs.
+
+* Searching
+I use [[https://github.com/mclear-tools/consult-notes][consult-notes]] for searching my notes, however, the =consult-notes= command only searches by filename and tags. I want the ability to use a prefix before my =consult-notes= command to then run =consult-notes-search-in-all-notes=. Ideally I want to use the =C-u= prefix, however if you bind something with the =C-u= prefix, your met with a pretty nasty error. For example:
+
+#+begin_src emacs-lisp :noeval
+(global-set-key (kbd "C-u C-c n") 'consult-notes-search-in-all-notes)
+#+end_src
+
+#+RESULTS:
+: global-set-key: Key sequence C-u c starts with non-prefix key C-u
+
+I was able to get around this, but making my own function, and binding =C-c n= to that. This is what the function looks like:
+
+#+begin_src emacs-lisp :results none
+  (defun jt/consult-notes-search-in-all-notes ()
+    (interactive)
+    (if current-prefix-arg
+	(consult-notes-search-in-all-notes)
+      (consult-notes))))
+#+end_src
+
+Now If I were to press =C-c n= it would run =consult-notes= but if I were to prefix that with =C-u= It would run =consult-notes-search-in-all-notes=.
+
+* Code
+Here's all the code to add phrack to denote, I've refactored it a bit. 
+
+#+begin_src emacs-lisp :results none
+  (defun download-file (url destination)
+    "Download a file from URL and save it to DESTINATION."
+    (url-copy-file url destination t))
+
+  (defun create-directory-if-not-exists (directory)
+    "Create DIRECTORY if it doesn't exist."
+    (unless (file-exists-p directory)
+      (make-directory directory)))
+
+  (defun untar-file (file destination)
+    "Untar FILE into DESTINATION."
+    (shell-command (format "tar -xzvf %s -C %s" file destination)))
+
+  (defun fixup-files-in-directory (directory)
+    "Rename the files from 1.txt to 01.txt, etc in DIRECTORY."
+    (let ((files (directory-files directory nil "^[0-9]+\\.txt$")))
+      (dolist (file files)
+	(let* ((old-file-path (concat directory "/" file))
+	       (base-name (file-name-base file))
+	       (new-file-path (concat directory "/" (format "%02d.txt" (string-to-number base-name)))))
+	  (rename-file old-file-path new-file-path)))))
+
+  (defun automate-denote-rename-directory (directory)
+    "Automate Denote file rename and tag addition for all files in DIRECTORY."
+    (let* ((files (directory-files directory nil "^[0-9]+\\.txt$"))
+	   (tag (file-name-nondirectory directory)))
+      (dolist (file files)
+	(let ((file-path (concat directory "/" file))
+	      (title (file-name-base file)))
+	  (with-current-buffer (find-file-noselect file-path)
+	    (denote-rename-file file title (list tag) nil)
+	    (save-buffer)
+	    (kill-buffer))))))
+
+  (defun add-phrack-to-denote ()
+    "Download, untar, rename directories and files, and in to Denote."
+    (setq denote-rename-no-confirm t)
+
+    (dotimes (i 70)
+      (let* ((index (1+ i))
+	     (url (format "http://www.phrack.org/archives/tgz/phrack%d.tar.gz" index))
+	     (filename (format "phrack%d.tar.gz" index))
+	     (directory (format "phrack%02d" index))
+	     (filepath (concat directory "/" filename)))
+
+	(create-directory-if-not-exists directory)
+	(download-file url filepath)
+	(untar-file filepath directory)
+	(rename-file directory (format "phrack%02d" index))
+	(fixup-files-in-directory directory)
+	(automate-denote-rename-directory directory))))
+
+  (add-phrack-to-denote)
+
+#+end_src
