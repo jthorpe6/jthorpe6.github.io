@@ -1,0 +1,140 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: ghidra, tips, tricks
+#+DATE: <2024-01-19 Fri>
+#+TITLE: Ghidra Stuff
+
+I don't really use much Ghidra in my day job, I tend to use a compination of IDA and Binary Ninja. My experience with Ghidra has been limited to CTF's.
+
+I did pick up some tips and tricks when using Ghidra, and I feel like I should document that somewhere.
+
+* Custom Highlight
+When looking at the decompiler and you select a value, it does not make it overly clear if the value its used elsewhere. 
+We have to change the setting to enable this to *LEFT*. 
+
+#+DOWNLOADED: screenshot @ 2024-01-19 21:41:57
+[[file:/images/2024-01-19_21-41-57_screenshot.png]]
+
+* IDA Feels
+Using [[https://github.com/enovella/ida2ghidra-kb][this]] I can make Ghidra feel and behave more like IDA. Mainly replacing the keybindings with the ones I'm used to from IDA.
+
+* Ghidra Cheat Sheet
+Stolen from https://ghidra-sre.org/CheatSheet.html.
+
+** Load Project/Program
+
+|------------------+----------+-------------------------|
+| Action           | Shortcut | Menu -> Path            |
+| New Project      | Ctrl+N   | File → New Project      |
+| Open Project     | Ctrl+O   | File → Open Project     |
+| Close Project    | Ctrl+W   | File → Close Project    |
+| Save Project     | Ctrl+S   | File → Save Project     |
+| Import File      | I        | File → Import File      |
+| Export Program   | O        | File → Export Program   |
+| Open File System | Ctrl+I   | File → Open File System |
+|------------------+----------+-------------------------|
+
+** Mark up
+
+|---------------------+--------------+-------------------------------------------------+---------------------|
+| Action              | Shortcut     | Menu -> Path                                    |                     |
+|---------------------+--------------+-------------------------------------------------+---------------------|
+| Undo                | Ctrl+Z       | Edit → Undo                                     |                     |
+| Redo                | Ctrl+Shift+Z | Edit → Redo                                     |                     |
+| Save Program        | Ctrl+S       | File → Save program name                        |                     |
+| Disassemble         | D            | ❖ → Disassemble                                 |                     |
+| Clear Code/Data     | C            | ❖ → Clear Code Bytes                            |                     |
+| Add Label           | L            | ❖ → Add Label                                   |                     |
+| Edit Label          | L            | ❖ → Edit Label                                  |                     |
+| Rename Function     | L            | ❖ → Function → Rename Function                  |                     |
+| Remove Label        | Del          | ❖ → Remove Label                                |                     |
+| Remove Function     | Del          | ❖ → Function → Delete Function                  |                     |
+| Define Data         | T            | ❖ → Data → Choose Data Type OR ❖ → Data → type |                     |
+| Repeat Define Data  | Y            | ❖ → Data → Last Used: type                      |                     |
+| Rename Variable     | L            | ❖ → Rename Variable                             |                     |
+| Retype Variable     | Ctrl+L       | ❖ → Retype Variable                             |                     |
+| Cycle Integer Types | B            | ❖ → Data → Cycle → byte, word, dword, qword     |                     |
+| Cycle String Types  | '            | ❖ → Data → Cycle → char, string, unicode        |                     |
+| Cycle Float Types   | F            | ❖ → Data → Cycle → float, double                |                     |
+| Create Array        | `[`          | ❖ → Data → Create Array                         |                     |
+| Create Pointer      | P            | ❖ → Data → pointer                              |                     |
+| Create Structure    | Shift+`[`    | ❖ → Data → Create Structure                     |                     |
+| New Structure       |              |                                                 | ❖ → New → Structure |
+| Import C Header     |              | File → Parse C Source                           |                     |
+| Cross References    |              | ❖ → References → Show References to context     |                     |
+|                     |              |                                                 |                     |
+|---------------------+--------------+-------------------------------------------------+---------------------|
+
+** Navigation
+
+|-------------------------------+---------------------------+-------------------------------------------------+---|
+| Action                        | Shortcut                  | Menu -> Path                                    |   |
+|-------------------------------+---------------------------+-------------------------------------------------+---|
+| Go To                         | G                         | Navigation → Go To                              |   |
+| Back                          |                           | Alt+←                                           |   |
+| Forward                       |                           | Alt+→                                           |   |
+| Toggle Direction              | Ctrl+Alt+T                | Navigation → Toggle Code Unit Search Direction  |   |
+| Next Instruction              | Ctrl+Alt+I                | Navigation → Next Instruction                   |   |
+| Next Data                     | Ctrl+Alt+D                | Navigation → Next Data                          |   |
+| Next Undefined                | Ctrl+Alt+U                | Navigation → Next Undefined                     |   |
+| Next Label                    | Ctrl+Alt+L                | Navigation → Next Label                         |   |
+| Next Function                 | Ctrl+Alt+F	OR Ctrl+↓ | Navigation → Next Function                      |   |
+| Previous Function             | Ctrl+↑                    | Navigation → Go To Previous Function            |   |
+| Next Non-function Instruction | Ctrl+Alt+N                | Navigation → Next Instruction Not In a Function |   |
+| Next Different Byte Value     | Ctrl+Alt+V                | Navigation → Next Different Byte Value          |   |
+| Next Bookmark                 | Ctrl+Alt+B                | Navigation → Next Bookmark                      |   |
+|-------------------------------+---------------------------+-------------------------------------------------+---|
+
+** Windows
+
+|---------------------+----------+-----------------------------------+------------------------------|
+| Action              | Shortcut | Menu -> Path                      |                              |
+|---------------------+----------+-----------------------------------+------------------------------|
+| Bookmarks           | Ctrl+B   | Window → Bookmarks                |                              |
+| Byte Viewer         |          |                                   | Window → Bytes: program name |
+| Function Call Trees |          |                                   |                              |
+| Data Types          |          | Window → Data Type Manager        |                              |
+| Decompiler          | Ctrl+E   | Window → Decompile: function name |                              |
+| Function Graph      |          | Window → Function Graph           |                              |
+| Script Manager      |          | Window → Script Manager           |                              |
+| [[Memory]] Map          |          | Window → [[Memory]] Map               |                              |
+| Register Values     | V        | Window → Register Manager         |                              |
+| Symbol Table        |          | Window → Symbol Table             |                              |
+| Symbol References   |          | Window → Symbol References        |                              |
+| Symbol Tree         |          | Window → Symbol Tree              |                              |
+|---------------------+----------+-----------------------------------+------------------------------|
+
+** Search
+
+|-----------------------------------------------------------------------------------------------------------------+--------------+-----------------------|
+| Action                                                                                                          | Shortcut     | Menu -> Path          |
+|-----------------------------------------------------------------------------------------------------------------+--------------+-----------------------|
+| Search [[Memory]]                                                                                                   | S            | Search → [[Memory]]       |
+| Search Program Text                                                                                             | Ctrl+Shift+E | Search → Program Text |
+| Search For ... Matching [[Instructions]], Address Tables, Direct References, Instruction Patterns, Scalars, Strings |              | Search → For what     |
+|-----------------------------------------------------------------------------------------------------------------+--------------+-----------------------|
+
+** Miscellaneous
+
+|---------------------+--------------+-----------------------------+---------------|
+| Action              | Shortcut     | Menu -> Path                |               |
+|---------------------+--------------+-----------------------------+---------------|
+| Select              |              |                             | Select → what |
+| Program Differences | 2            | Tools → Program Differences |               |
+| Rerun Script        | Ctrl+Shift+R |                             |               |
+| Assemble            | Ctrl+Shift+G | ❖ → Patch Instruction       |               |
+|---------------------+--------------+-----------------------------+---------------|
+
+** Help/Customize/Info
+
+|------------------+----------+---------------------------+---------------------|
+| Action           | Shortcut | Menu -> Path              |                     |
+|------------------+----------+---------------------------+---------------------|
+| Ghidra Help      | F1       | Help → Contents           |                     |
+| About Ghidra     |          |                           | Help → About Ghidra |
+| About Program    |          | Help → About program name |                     |
+| Preferences      |          | Edit → Tool Options       |                     |
+| Set Key Binding  | F4       |                           |                     |
+| Key Bindings     |          | Edit → Tool Options →     |                     |
+| Processor Manual |          | ❖ → Processor Manual      |                     |
+|------------------+----------+---------------------------+---------------------|
+
