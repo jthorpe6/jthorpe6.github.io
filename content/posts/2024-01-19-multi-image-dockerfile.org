@@ -1,0 +1,18 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: docker, tips, tricks
+#+DATE: <2024-01-19 Fri>
+#+TITLE: Multi Image Dockerfile
+
+Recently I found out that you can have multiple images in a =Dockerfile=. I found this really helpful for fuzzing, where I could build the harness in one docker image, and then copy only the harness to the AFL++ image. Here is a bit of a bare bone extract of my =Dockerfile=.
+
+#+begin_src dockerfile
+  FROM --platform=linux/aarch64 debian AS builder
+  # rest of the builder stuff
+
+  FROM --platform=linux/aarch64 aflplusplus/aflplusplus:latest
+
+  COPY --from=builder /build/harness /src/
+  COPY --from=builder /build/other_stuff_for_fuzzing /src/
+#+end_src
+
+This is useful, when we only care about the last stage.

@@ -1,0 +1,125 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: fuzz, tips, tricks
+#+DATE: <2024-01-19 Fri>
+#+TITLE: Playing with Libfuzzer
+
+I really want to be fuzzing more in general. Towards the end of last year I decided to play a bit with =libfuzzer=. Here is my quick test from the tutorial.
+
+*The command*
+
+#+begin_src shell :results output :dir /tmp/
+  wget https://github.com/google/fuzzing/raw/master/tutorial/libFuzzer/fuzz_me.cc
+  /opt/homebrew/Cellar/llvm/17.0.6/bin/clang++ -g -fsanitize=address,fuzzer fuzz_me.cc
+  ./a.out
+#+end_src
+
+*The output*
+
+#+RESULTS:
+#+begin_example
+--2023-12-21 16:13:34--  https://github.com/google/fuzzing/raw/master/tutorial/libFuzzer/fuzz_me.cc
+Resolving github.com (github.com)... 140.82.121.3
+Connecting to github.com (github.com)|140.82.121.3|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://raw.githubusercontent.com/google/fuzzing/master/tutorial/libFuzzer/fuzz_me.cc [following]
+--2023-12-21 16:13:35--  https://raw.githubusercontent.com/google/fuzzing/master/tutorial/libFuzzer/fuzz_me.cc
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.110.133, 185.199.108.133, ...
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 336 [text/plain]
+Saving to: ‘fuzz_me.cc.2’
+
+     0K                                                       100% 4.27M=0s
+
+2023-12-21 16:13:35 (4.27 MB/s) - ‘fuzz_me.cc.2’ saved [336/336]
+
+ld: warning: ignoring duplicate libraries: '-lc++'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1639630457
+INFO: Loaded 1 modules   (7 inline 8-bit counters): 7 [0x1047880e8, 0x1047880ef), 
+INFO: Loaded 1 PC tables (7 PCs): 7 [0x1047880f0,0x104788160), 
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: A corpus is not provided, starting from an empty corpus
+#2	INITED cov: 3 ft: 3 corp: 1/1b exec/s: 0 rss: 48Mb
+#4	NEW    cov: 4 ft: 4 corp: 2/4b lim: 4 exec/s: 0 rss: 48Mb L: 3/3 MS: 2 CopyPart-InsertByte-
+#462	NEW    cov: 5 ft: 5 corp: 3/12b lim: 8 exec/s: 0 rss: 48Mb L: 8/8 MS: 3 InsertRepeatedBytes-CrossOver-CMP- DE: "F\000"-
+#487	REDUCE cov: 5 ft: 5 corp: 3/8b lim: 8 exec/s: 0 rss: 49Mb L: 4/4 MS: 5 CopyPart-ChangeBinInt-CopyPart-PersAutoDict-EraseBytes- DE: "F\000"-
+#563	REDUCE cov: 5 ft: 5 corp: 3/7b lim: 8 exec/s: 0 rss: 49Mb L: 3/3 MS: 1 EraseBytes-
+#7331	REDUCE cov: 6 ft: 6 corp: 4/11b lim: 74 exec/s: 0 rss: 49Mb L: 4/4 MS: 3 EraseBytes-PersAutoDict-ChangeByte- DE: "F\000"-
+#8189	REDUCE cov: 6 ft: 6 corp: 4/10b lim: 80 exec/s: 0 rss: 49Mb L: 3/3 MS: 3 CopyPart-CrossOver-EraseBytes-
+#21815	REDUCE cov: 7 ft: 7 corp: 5/79b lim: 212 exec/s: 0 rss: 50Mb L: 69/69 MS: 1 InsertRepeatedBytes-
+#22007	REDUCE cov: 7 ft: 7 corp: 5/67b lim: 212 exec/s: 0 rss: 50Mb L: 57/57 MS: 2 ChangeByte-EraseBytes-
+#22113	REDUCE cov: 7 ft: 7 corp: 5/43b lim: 212 exec/s: 0 rss: 50Mb L: 33/33 MS: 1 EraseBytes-
+#22224	REDUCE cov: 7 ft: 7 corp: 5/36b lim: 212 exec/s: 0 rss: 50Mb L: 26/26 MS: 1 CrossOver-
+#22291	REDUCE cov: 7 ft: 7 corp: 5/31b lim: 212 exec/s: 0 rss: 50Mb L: 21/21 MS: 2 ShuffleBytes-EraseBytes-
+#22390	REDUCE cov: 7 ft: 7 corp: 5/27b lim: 212 exec/s: 0 rss: 50Mb L: 17/17 MS: 4 ChangeBinInt-ChangeBinInt-ChangeByte-EraseBytes-
+#22524	REDUCE cov: 7 ft: 7 corp: 5/26b lim: 212 exec/s: 0 rss: 50Mb L: 16/16 MS: 4 ChangeByte-ChangeBit-ChangeBit-EraseBytes-
+#22635	REDUCE cov: 7 ft: 7 corp: 5/23b lim: 212 exec/s: 0 rss: 50Mb L: 13/13 MS: 1 EraseBytes-
+#22871	REDUCE cov: 7 ft: 7 corp: 5/17b lim: 212 exec/s: 0 rss: 50Mb L: 7/7 MS: 1 EraseBytes-
+#22934	REDUCE cov: 7 ft: 7 corp: 5/14b lim: 212 exec/s: 0 rss: 50Mb L: 4/4 MS: 3 ShuffleBytes-CrossOver-EraseBytes-
+=================================================================
+==20738==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000090ff3 at pc 0x000104746860 bp 0x00016b6ba850 sp 0x00016b6ba848
+READ of size 1 at 0x602000090ff3 thread T0
+    #0 0x10474685c in FuzzMe(unsigned char const*, unsigned long) fuzz_me.cc:9
+    #1 0x1047468cc in LLVMFuzzerTestOneInput fuzz_me.cc:13
+    #2 0x104762240 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) FuzzerLoop.cpp:614
+    #3 0x104761b28 in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long, bool, fuzzer::InputInfo*, bool, bool*) FuzzerLoop.cpp:516
+    #4 0x104763274 in fuzzer::Fuzzer::MutateAndTestOne() FuzzerLoop.cpp:760
+    #5 0x1047640b4 in fuzzer::Fuzzer::Loop(std::__1::vector<fuzzer::SizedFile, std::__1::allocator<fuzzer::SizedFile>>&) FuzzerLoop.cpp:905
+    #6 0x104753c54 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) FuzzerDriver.cpp:911
+    #7 0x10477dd88 in main FuzzerMain.cpp:20
+    #8 0x18dad10dc  (<unknown module>)
+    #9 0xc7377ffffffffffc  (<unknown module>)
+
+0x602000090ff3 is located 0 bytes after 3-byte region [0x602000090ff0,0x602000090ff3)
+allocated by thread T0 here:
+    #0 0x105032474 in _Znam+0x6c (libclang_rt.asan_osx_dynamic.dylib:arm64+0x62474)
+    #1 0x104762154 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) FuzzerLoop.cpp:598
+    #2 0x104761b28 in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long, bool, fuzzer::InputInfo*, bool, bool*) FuzzerLoop.cpp:516
+    #3 0x104763274 in fuzzer::Fuzzer::MutateAndTestOne() FuzzerLoop.cpp:760
+    #4 0x1047640b4 in fuzzer::Fuzzer::Loop(std::__1::vector<fuzzer::SizedFile, std::__1::allocator<fuzzer::SizedFile>>&) FuzzerLoop.cpp:905
+    #5 0x104753c54 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) FuzzerDriver.cpp:911
+    #6 0x10477dd88 in main FuzzerMain.cpp:20
+    #7 0x18dad10dc  (<unknown module>)
+    #8 0xc7377ffffffffffc  (<unknown module>)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow fuzz_me.cc:9 in FuzzMe(unsigned char const*, unsigned long)
+Shadow bytes around the buggy address:
+  0x602000090d00: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x602000090d80: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x602000090e00: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x602000090e80: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fd
+  0x602000090f00: fa fa fd fd fa fa fd fa fa fa fd fa fa fa fd fd
+=>0x602000090f80: fa fa fd fa fa fa fd fd fa fa fd fa fa fa[03]fa
+  0x602000091000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x602000091080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x602000091100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x602000091180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x602000091200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==20738==ABORTING
+MS: 2 InsertByte-EraseBytes-; base unit: aea2e3923af219a8956f626558ef32f30a914ebc
+0x46,0x55,0x5a,
+FUZ
+artifact_prefix='./'; Test unit written to ./crash-0eb8e4ed029b774d80f2b66408203801cb982a60
+Base64: RlVa
+/bin/bash: line 3: 20738 Abort trap: 6           ./a.out
+#+end_example

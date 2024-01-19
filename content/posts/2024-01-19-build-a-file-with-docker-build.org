@@ -1,0 +1,21 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: docker, tips, tricks
+#+DATE: <2024-01-19 Fri>
+#+TITLE: Build A File With Docker Build
+
+I helped a colleague build a docker container that during the =docker build= phase would just produce a file, as there is no need for a full on image. To do this, we need a multi image container
+
+#+begin_src dockerfile
+  FROM --platform=linux/aarch64 debian as builder
+  #<do things>
+  FROM scratch as artifact
+  COPY --from=builder /full/path/to/file/to/copy /path/on/host
+#+end_src
+
+And then you can build it like so.
+
+#+begin_src shell :results output
+docker build --target artifact --output type=local,dest=. .
+#+end_src
+
+You then get a file from the build process on your host. This can be useful for shared libraries.
