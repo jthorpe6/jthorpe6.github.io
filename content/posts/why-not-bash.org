@@ -1,0 +1,207 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: bash, shell, python, scripting
+#+DATE: 2024-06-06
+#+TITLE: Why not Bash?
+
+I was recently part of a team workshop where we had to write some automation scripts, and call me old, but I was shocked to see a lot of the team calling binaries from =python=,  rather than writing a =bash= script to do all of the processing. After talking to a few colleagues, I discovered that =bash= is /not natural/ to them, like =python= is.
+
+I never went to university, so all of my /computer science/ stuff has very much been self taught, so I suppose that could be the reason why I'd prefer to write "=parse.sh=" rather than "=parse.py=". But this got me thinking, =bash= is really not that hard, we use the shell every day, so I wanted to write up why I'd prefer to write a =bash= script over a =python= one.
+
+* Getting help
+The biggest gripe I've heard about writing =bash= scripts is that you need to learn each command's syntax, and although not wrong, it shouldn't be a show stopper. Every command has either a =man= page or at the very least a help file. Now days with LSP's and AI's, learning or writing =bash= scripts with specific syntax may slow you down to begin with, but you could say that the same about picking up anything new.
+
+A good example of this is the =uname= command. I would normally use this command to identify the operating system the script is being ran on. But even after many years of writing =bash= scripts, I can never remember the flag to just output the OS flavour, yet the =man= page will tell me.
+
+#+begin_src shell :results output :exports both
+man uname
+#+end_src
+
+#+RESULTS:
+#+begin_example
+UNAME(1)                    General Commands Manual                   UNAME(1)
+
+NAME
+     uname – display information about the system
+
+SYNOPSIS
+     uname [-amnoprsv]
+
+DESCRIPTION
+     The uname command writes the name of the operating system implementation
+     to standard output.  When options are specified, strings representing one
+     or more system characteristics are written to standard output.
+
+     The options are as follows:
+
+     -a      Behave as though the options -m, -n, -r, -s, and -v were
+             specified.
+
+     -m      Write the type of the current hardware platform to standard
+             output.  (make(1) uses it to set the MACHINE variable.)
+
+     -n      Write the name of the system to standard output.
+
+     -o      This is a synonym for the -s option, for compatibility with other
+             systems.
+
+     -p      Write the type of the machine processor architecture to standard
+             output.  (make(1) uses it to set the MACHINE_ARCH variable.)
+
+     -r      Write the current release level of the operating system to
+             standard output.
+
+     -s      Write the name of the operating system implementation to standard
+             output.
+
+     -v      Write the version level of this release of the operating system
+             to standard output.
+
+     If the -a flag is specified, or multiple flags are specified, all output
+     is written on a single line, separated by spaces.
+
+ENVIRONMENT
+     An environment variable composed of the string UNAME_ followed by any
+     flag to the uname utility (except for -a) will allow the corresponding
+     data to be set to the contents of the environment variable.
+
+     The -m, -n, -r, -s, and -v variables additionally have long aliases that
+     have historically been honored on MacOS, “UNAME_MACHINE”,
+     “UNAME_NODENAME”, “UNAME_RELEASE”, “UNAME_SYSNAME”, and “UNAME_VERSION”
+     respectively.  These names have a higher priority than their shorter
+     counterparts described in the previous paragraph.
+
+     See uname(3) for more information.
+
+EXIT STATUS
+     The uname utility exits 0 on success, and >0 if an error occurs.
+
+EXAMPLES
+     The hardware platform (-m) can be different from the machine's processor
+     architecture (-p), e.g., on 64-bit PowerPC, -m would return powerpc and
+     -p would return powerpc64.
+
+SEE ALSO
+     hostname(1), machine(1), sw_vers(1), sysctl(3), uname(3), sysctl(8)
+
+STANDARDS
+     The uname command is expected to conform to the IEEE Std 1003.2
+     (“POSIX.2”) specification.
+
+HISTORY
+     The uname command appeared in PWB UNIX 1.0, however 4.4BSD was the first
+     Berkeley release with the uname command.
+
+     The -K and -U extension flags appeared in FreeBSD 10.0.  The -b extension
+     flag appeared in FreeBSD 13.0.
+
+macOS 14.5                     November 13, 2020                    macOS 14.5
+#+end_example
+
+OK great, so its the =-s= flag. I could then use this like so to determine the OS its being ran on.
+
+#+begin_src shell :results output :exports both
+  if [[ $(uname -s) == "Darwin" ]]
+  then
+      echo "do stuff"
+  else
+      echo "fail"
+  fi
+
+#+end_src
+
+#+RESULTS:
+: do stuff
+
+* Everything is a command
+In the previous example, I tried to include some intermediate =bash= syntax, as well as keeping it relatively simple. I'm talking about the double =[= brackets and later in this section I'll talk about what the =$()= is all about.
+
+Basically, everything in =bash= is considered a command, so that first line can be broken up like;
+
+#+begin_example
+ if
+ condition in first set of [ ]
+ condition commands in second set of [ ]
+#+end_example
+
+Because everything is a command, the =[= is actually a command, and  shorthand for the =test= command. This can be verified by the =man= page.
+
+#+begin_src shell :results output :exports both
+man [
+#+end_src
+
+#+RESULTS:
+#+begin_example
+TEST(1)                     General Commands Manual                    TEST(1)
+
+NAME
+     test, [ – condition evaluation utility
+
+SYNOPSIS
+     test expression
+     [ expression ]
+
+DESCRIPTION
+     The test utility evaluates the expression and, if it evaluates to true,
+     returns a zero (true) exit status; otherwise it returns 1 (false).  If
+     there is no expression, test also returns 1 (false).
+
+
+..SNIP..     
+#+end_example
+
+This is where a lot of people I've spoken to find the variable assignment in =bash= a little abnormal. As a space would also be considered an argument.
+
+#+begin_src shell :results output :exports both
+  TEST1 = A
+  TEST2=B
+
+  echo $TEST1
+  echo $TEST2
+#+end_src
+
+#+RESULTS:
+: /bin/bash: line 1: TEST1: command not found
+: B
+
+Now what if I had wanted to assign the output of a command to a variable that I can then later use ? This is where the =$()= syntax comes into play. This is a sub shell, where the output of the command inside the =$()= will get executed. The easiest way for me to show this is with an example.
+
+#+begin_src shell :results output :exports both
+  OS=$(uname -s)
+  echo $OS
+#+end_src
+
+#+RESULTS:
+: Darwin
+
+* Everything is "just text"
+There are no types in =bash=, which if you ask me makes life much easier. Because everything is just text, it does mean that there are a lots of ways to parse text. Programs like =sed=, =tr= and =awk= all have their own syntax, where I prefer =awk= for larger text processing, and use =tr= for simple things, like replacing a character in a string. I also avoid =sed= as much as possible.
+
+Recently I was very proud of myself by implementing somewhat of a dictionary in a script (yes i know its actually disgusting).
+
+#+begin_src shell :results output :exports both
+  function foo() {
+      declare -a values=("a:1" "b:2" "c:3" "d:4")
+      for v in ${values[@]}
+      do
+	  KEY=$(echo $v | cut -d ":" -f 1)
+	  VALUE=$(echo $v | cut -d ":" -f 2)
+
+	  echo -e "key is: $KEY, and value is: $VALUE"
+      done
+  }
+
+  foo
+#+end_src
+
+#+RESULTS:
+: key is: a, and value is: 1
+: key is: b, and value is: 2
+: key is: c, and value is: 3
+: key is: d, and value is: 4
+
+* Finishing up
+This post got quit a bit longer that I intended for it to be, and there is a lot more that I could write with regards to =bash= scripting. One of the main ones is the [[https://mywiki.wooledge.org/BashPitfalls][many many pitfalls]] that you should be aware of. However, I'm going to wrap up this post here, and leave you with some beautiful projects written in =bash=.
+
+ - [[https://github.com/taviso/ctypes.sh][ctypes.sh]]
+ - [[https://github.com/avleen/bashttpd][bashhttpd]]
+ - [[https://github.com/gh2o/bash_tls][bash_tls]]
