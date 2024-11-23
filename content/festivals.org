@@ -1,0 +1,112 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: about
+#+title: Festivals I've attended
+
+* 2024
+
+#+begin_export html
+<p align="center">
+  <img src="/images/oef-2024.jpg" />
+</p>
+#+end_export
+
+#+begin_export html
+<p align="center">
+  <img src="/images/chimpyfest-2024.jpg" />
+</p>
+#+end_export
+
+* 2023
+
+#+begin_export html
+<p align="center">
+  <img src="/images/oef-2023.jpg" />
+</p>
+#+end_export
+
+#+begin_export html
+<p align="center">
+  <img src="/images/chimpyfest-2023.jpg" />
+</p>
+#+end_export
+
+
+* 2019
+
+#+begin_export html
+<p align="center">
+  <img src="/images/deathfeast-2019.jpg" />
+</p>
+#+end_export
+
+* 2018
+
+#+begin_export html
+<p align="center">
+  <img src="/images/deathfeast-2018.jpg" />
+</p>
+#+end_export
+
+* 2017
+
+#+begin_export html
+<p align="center">
+  <img src="/images/deathfeast-2017.jpeg" />
+</p>
+#+end_export
+
+* 2016
+
+#+begin_export html
+<p align="center">
+  <img src="/images/netherlands-2016.jpg" />
+</p>
+#+end_export
+
+* 2014
+
+#+begin_export html
+<p align="center">
+  <img src="/images/neurotic-2014.jpg" />
+</p>
+#+end_export
+
+* 2013
+
+#+begin_export html
+<p align="center">
+  <img src="/images/extremefest-2013.jpg" />
+</p>
+#+end_export
+
+* 2010
+
+#+begin_export html
+<p align="center">
+  <img src="/images/bloodstock-2010.jpeg" />
+</p>
+#+end_export
+
+* 2009
+
+#+begin_export html
+<p align="center">
+  <img src="/images/wacken-2009.jpg" />
+</p>
+#+end_export
+
+* 2008
+
+#+begin_export html
+<p align="center">
+  <img src="/images/wacken-2008.jpg" />
+</p>
+#+end_export
+
+* 2007
+
+#+begin_export html
+<p align="center">
+  <img src="/images/wacken-2007.jpg" />
+</p>
+#+end_export

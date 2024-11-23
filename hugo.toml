@@ -26,11 +26,11 @@ theme = "potato-dark"
     url = "/"
     weight = 1
 
-# [[menu.main]]
-#     name = "About"
-#     url = "/about"
-#     weight = 2
-# 
+[[menu.main]]
+    name = "Festivals"
+    url = "/festivals"
+    weight = 2
+
 # [[menu.main]]
 #     identifier = "theme"
 #     name = "Theme"
