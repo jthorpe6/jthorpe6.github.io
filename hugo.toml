@@ -3,7 +3,7 @@ baseurl = "/"
 languageCode = "en-gb"
 Title = "JxTx"
 # Copyright notice. This is displayed in the footer.
-copyright = "&copy; 2020 - 2024 Joe Thorpe"
+copyright = "&copy; 2020 - 2025 Joe Thorpe"
 theme = "potato-dark"
 
 [params]
