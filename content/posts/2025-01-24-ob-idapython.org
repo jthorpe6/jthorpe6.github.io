@@ -1,0 +1,69 @@
+#+HUGO_BASE_DIR: ../../
+#+EXPORT_HUGO_CATEGORIES: reverse engineering,ida,python,emacs
+#+DATE: 2025-01-24
+#+TITLE: ob-idapython
+
+Code: [[https://github.com/jthorpe6/ob-idapython][ob-idapython]]
+
+It's been a while since I posted. For the last 6 months or so I've been reverse engineering a very complex binary. This has been both fun and frustrating, but I've learnt loads about reverse engineering in general, and as usual, I've taken a massive amount of notes that I probably won't look at any time soon, and of course I've taken these notes in [[https://orgmode.org][org-mode]]. [[https://jthorpe6.github.io/pages/Emacs-For-Pentesters.html][I've wrote about my notes before]], and since then it's only improved, the biggest improvement to my notes has been using [[https://orgmode.org/worg/org-contrib/babel/][babel]] a lot more as it allows me to run quick experiments from within my notes file. Trying to improve my workflow even more, I decided to add =idapython= to babel, so I could write IDA scripts in my notes file, and then =org-babel-execute= would send and execute that script in my IDA instance. This required me to write a simple IDA plugin that would start an =http= server, and an Emacs plugin that would send the content of the source code block to that =http= server. It's not perfect, with the main drawback being that I don't get the response back in Emacs, but it saves a copy and paste.
+
+* IDA plugin
+I've only ever wrote a handful of IDA scripts, never a plugin. I already know that the IDA API's documentation is lacking to say the least. What took me a while to figure out, was that I needed to register the Start and Stop actions to the UI in a different class, like so.
+
+#+begin_src python :results output
+class UiAction(idaapi.action_handler_t):
+    def __init__(self, id, name, tooltip, menuPath, callback):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.tooltip = tooltip
+        self.menuPath = menuPath
+        self.callback = callback
+
+    def registerAction(self):
+        action_desc = idaapi.action_desc_t(
+            self.id,
+            self.name,
+            self,
+            "",
+            self.tooltip,
+            0,
+        )
+        if idaapi.register_action(action_desc):
+            idaapi.attach_action_to_menu(self.menuPath, self.id, idaapi.SETMENU_APP)
+            return True
+        return False
+
+    def unregisterAction(self):
+        idaapi.detach_action_from_menu(self.menuPath, self.id)
+        idaapi.unregister_action(self.id)
+
+    def activate(self, ctx):
+        self.callback(ctx)
+        return 1
+
+    def update(self, ctx):
+        return idaapi.AST_ENABLE_ALWAYS
+#+end_src
+
+This then allowed me to have actions for the Start and Stop buttons. I won't go into full detail, as you can go and read the source.
+
+* Emacs package
+This was actually the easier side for me, I've written [[https://gitlab.com/JxTx/ob-rasm2][babel plugins before]], The only challenge here was using =make-temp-file= to store the source code block, before sending that using =curl= to the =http= server running in IDA. Again, I won't go into full detail, as you can go and read the source.
+
+* Putting it all together
+As shown in the project README. First, start the IDA Babel Server.
+
+[[/images/20250124-start_server.png]]
+
+Then, execute an =idapython= source block, and the results will show up in the IDA console.
+
+#+begin_example
+  ,#+BEGIN_SRC idapython :host localhost :port 4000
+    import idc
+    func_name = idc.get_func_name(idc.here())
+    print(f"Current function: {func_name}")
+  ,#+END_SRC
+#+end_example
+
+[[/images/20250124-console.png]]
