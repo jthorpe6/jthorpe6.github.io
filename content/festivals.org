@@ -2,6 +2,15 @@
 #+EXPORT_HUGO_CATEGORIES: about
 #+title: Festivals I've attended
 
+* 2025
+
+#+begin_export html
+<p align="center">
+  <img src="/images/groovy-and-stinky-2025.jpg" />
+</p>
+#+end_export
+
+
 * 2024
 
 #+begin_export html
